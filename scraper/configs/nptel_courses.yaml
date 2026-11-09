@@ -1,0 +1,55 @@
+# Config for scraping the complete NPTEL Course Catalog (3,400+ courses)
+# from https://nptel.ac.in/courses
+
+name: nptel_courses_catalog
+
+start_urls:
+  - "https://nptel.ac.in/courses"
+
+# The catalog listing is statically server-side rendered.
+render_js: false
+
+item:
+  container: "a[href*='/courses/']"
+  fields:
+    title:
+      selector: "div.name"
+      attr: text
+      required: true
+    url:
+      attr: href
+    course_id:
+      attr: href
+      clean:
+        - {regex: 'courses/(\d+)'}
+        - {type: int}
+      default: null
+    discipline:
+      selector: "div.discipline"
+      attr: text
+      default: null
+    instructor:
+      selector: "xpath:.//div[contains(@class, 'meta-data')]/span[1]"
+      attr: text
+      clean:
+        - strip
+      default: null
+    institute:
+      selector: "xpath:.//div[contains(@class, 'meta-data')]/span[2]"
+      attr: text
+      clean:
+        - strip
+      default: null
+
+dedupe_on: [course_id]
+
+pagination:
+  type: none
+
+max_pages: 1
+
+request:
+  delay: 1.0
+  jitter: 0.5
+  timeout: 45
+  retries: 3

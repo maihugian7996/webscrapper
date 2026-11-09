@@ -1,0 +1,79 @@
+# Config for MIT OpenCourseWare:
+# 6.0001 Introduction to Computer Science and Programming in Python (Fall 2016)
+# Target URL: https://ocw.mit.edu/courses/6-0001-introduction-to-computer-science-and-programming-in-python-fall-2016/
+
+name: mit_ocw_6_0001
+
+start_urls:
+  - "https://ocw.mit.edu/courses/6-0001-introduction-to-computer-science-and-programming-in-python-fall-2016/"
+
+# MIT OCW pages are statically server-side rendered.
+render_js: false
+
+item:
+  container: "span.course-nav-text-wrapper"
+  fields:
+    section_name:
+      selector: "a.nav-link"
+      attr: text
+      required: true
+    section_url:
+      selector: "a.nav-link"
+      attr: href
+    course_title:
+      selector: "xpath://h1[1]"
+      attr: text
+    course_number:
+      selector: "xpath://div[@id='collapsed-description']"
+      attr: text
+      clean:
+        - {regex: '^([0-9.]+)'}
+      default: "6.0001"
+    department:
+      selector: "xpath://h3[contains(text(), 'Departments')]/following-sibling::div[1]"
+      attr: text
+      clean: [collapse_whitespace]
+    instructors:
+      selector: "xpath://h3[contains(text(), 'Instructors')]/following-sibling::div[1]"
+      attr: text
+      clean: [collapse_whitespace]
+    term:
+      selector: "xpath://h3[contains(text(), 'As Taught In')]/following-sibling::div[1]"
+      attr: text
+      clean: [collapse_whitespace]
+    level:
+      selector: "xpath://h3[contains(text(), 'Level')]/following-sibling::div[1]"
+      attr: text
+      clean: [collapse_whitespace]
+    course_description:
+      selector: "xpath://div[@id='collapsed-description']"
+      attr: text
+      clean: [collapse_whitespace]
+
+dedupe_on: [section_url]
+
+pagination:
+  type: none
+
+max_pages: 1
+
+# Detail-page scraping: follow each section's URL and extract the main content
+detail:
+  link_field: section_url
+  max_items: null
+  fields:
+    content_summary:
+      selector: "main#course-content-section"
+      attr: text
+      clean:
+        - collapse_whitespace
+    resource_links:
+      selector: "main#course-content-section a[href*='.pdf'], main#course-content-section a[href*='.py'], main#course-content-section a[href*='.zip']"
+      attr: href
+      multiple: true
+
+request:
+  delay: 1.0
+  jitter: 0.5
+  timeout: 30
+  retries: 3

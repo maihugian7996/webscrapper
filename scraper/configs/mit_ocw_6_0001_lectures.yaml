@@ -1,0 +1,68 @@
+# Config for MIT OpenCourseWare 6.0001 Lecture Videos Gallery:
+# Target: https://ocw.mit.edu/courses/6-0001-introduction-to-computer-science-and-programming-in-python-fall-2016/video_galleries/lecture-videos/
+
+name: mit_ocw_6_0001_lectures
+
+start_urls:
+  - "https://ocw.mit.edu/courses/6-0001-introduction-to-computer-science-and-programming-in-python-fall-2016/video_galleries/lecture-videos/"
+
+render_js: false
+
+item:
+  container: "div.video-gallery-card"
+  fields:
+    lecture_title:
+      selector: "h5.video-title"
+      attr: text
+      required: true
+    lecture_number:
+      selector: "h5.video-title"
+      attr: text
+      clean:
+        - {regex: 'Lecture\s*(\d+)'}
+        - {type: int}
+      default: null
+    lecture_url:
+      selector: "a.video-link"
+      attr: href
+    thumbnail_url:
+      selector: "img.thumbnail"
+      attr: src
+    youtube_id:
+      selector: "img.thumbnail"
+      attr: src
+      clean:
+        - {regex: 'vi/([^/]+)/'}
+      default: null
+    youtube_watch_url:
+      selector: "img.thumbnail"
+      attr: src
+      clean:
+        - {regex: 'vi/([^/]+)/'}
+        - {prefix: "https://www.youtube.com/watch?v="}
+      default: null
+
+dedupe_on: [lecture_url]
+
+pagination:
+  type: none
+
+max_pages: 1
+
+# Detail-page scraping: follow each lecture's URL to extract transcript and description
+detail:
+  link_field: lecture_url
+  fields:
+    description:
+      selector: "div#description, div.description"
+      attr: text
+      clean: [collapse_whitespace]
+    transcript_pdf:
+      selector: "a[href*='.pdf']"
+      attr: href
+
+request:
+  delay: 1.0
+  jitter: 0.5
+  timeout: 30
+  retries: 3

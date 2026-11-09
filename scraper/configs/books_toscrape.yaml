@@ -1,0 +1,76 @@
+# Config for https://books.toscrape.com — a public sandbox site built for
+# scraping practice. Used to verify the scraper end to end.
+
+name: books_toscrape
+
+start_urls:
+  - "https://books.toscrape.com/catalogue/page-1.html"
+
+render_js: auto
+
+item:
+  container: "article.product_pod"
+  fields:
+    title:
+      selector: "h3 a"
+      attr: title
+      required: true
+    url:
+      selector: "h3 a"
+      attr: href
+    price:
+      selector: "p.price_color"
+      clean:
+        - {regex: '([\d.]+)'}
+        - {type: float}
+    currency:
+      selector: "p.price_color"
+      clean:
+        - {regex: '^([^\d\s]+)'}
+    in_stock:
+      selector: "p.instock.availability"
+      clean:
+        - lower
+        - {map: {"in stock": true, "out of stock": false}}
+    rating:
+      selector: "p.star-rating"
+      attr: class
+      clean:
+        - {regex: 'star-rating\s+(\w+)'}
+        - {map: {One: 1, Two: 2, Three: 3, Four: 4, Five: 5}}
+    image:
+      selector: "div.image_container img"
+      attr: src
+
+dedupe_on: [url]
+
+pagination:
+  type: next_link
+  next_selector: "li.next a"
+
+max_pages: 3
+
+detail:
+  link_field: url
+  max_items: 5
+  fields:
+    category:
+      selector: "ul.breadcrumb li:nth-child(3) a"
+    description:
+      selector: "#product_description + p"
+    upc:
+      selector: "xpath://th[text()='UPC']/following-sibling::td"
+    stock_count:
+      selector: "xpath://th[text()='Availability']/following-sibling::td"
+      clean:
+        - {regex: '\((\d+) available\)'}
+        - {type: int}
+    reviews:
+      selector: "xpath://th[text()='Number of reviews']/following-sibling::td"
+      clean: [{type: int}]
+
+request:
+  delay: 1.0
+  jitter: 0.5
+  timeout: 20
+  retries: 3

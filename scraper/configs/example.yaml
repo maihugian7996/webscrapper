@@ -1,0 +1,96 @@
+# =============================================================================
+#  TEMPLATE SITE CONFIG — NOT A REAL SITE
+# =============================================================================
+#  Copy this file to configs/<your_site>.yaml and replace every PLACEHOLDER
+#  value with selectors for the site you want to scrape. Every selector below
+#  is a placeholder and will not match anything meaningful as-is.
+#
+#  Selectors:  CSS by default ("div.card h2 a").
+#              XPath with a prefix ("xpath://div[@class='card']") or when the
+#              expression starts with "/", "./", "../" or "(".
+#  attr:       text (trimmed, whitespace-collapsed) | raw_text | html |
+#              inner_html | any attribute name (href, src, data-id, title ...).
+#              href/src/action/poster/data-src/data-href are resolved to
+#              absolute URLs automatically.
+#  clean:      ordered steps — strip | collapse_whitespace | lower | upper |
+#              title | {strip: "chars"} | {regex: "pattern"} |
+#              {regex: {pattern: "...", group: 1, ignore_case: true}} |
+#              {replace: {from: "x", to: "y"}} | {prefix: "..."} |
+#              {suffix: "..."} | {map: {a: 1, b: 2}} |
+#              {type: str|int|float|bool}
+# =============================================================================
+
+name: example_template                     # used for the default output filename
+
+start_urls:                                # PLACEHOLDER — or pass --url on the CLI
+  - "https://example.com/PLACEHOLDER/listing"
+
+render_js: auto                            # auto (static first, Playwright if no items) | true | false
+wait_for: null                             # PLACEHOLDER CSS selector Playwright waits for (optional)
+
+item:
+  container: "div.PLACEHOLDER-item"        # one match per item on the listing page
+  fields:
+    title:
+      selector: "h2.PLACEHOLDER-title"
+      attr: text
+      required: true                       # items without a title are dropped
+    url:
+      selector: "a.PLACEHOLDER-link"
+      attr: href                           # made absolute automatically
+    price:
+      selector: "xpath:.//span[@class='PLACEHOLDER-price']"   # XPath example
+      attr: text
+      clean:
+        - {regex: '([\d.,]+)'}             # keep the number only
+        - {type: float}                    # "1,299.50" -> 1299.5
+      default: null
+    image:
+      selector: "img.PLACEHOLDER-image"
+      attr: src
+    tags:
+      selector: "ul.PLACEHOLDER-tags li"
+      attr: text
+      multiple: true                       # -> list of strings
+      clean: [lower]
+    rating:                                # shorthand form is also allowed:  rating: "span.PLACEHOLDER-rating"
+      selector: "span.PLACEHOLDER-rating"
+      attr: class
+      clean:
+        - {regex: 'rating-(\w+)'}
+        - {map: {one: 1, two: 2, three: 3, four: 4, five: 5}}
+
+dedupe_on: [url]                           # fields that identify a unique item (omit = whole item)
+
+pagination:
+  type: next_link                          # none | next_link | url_pattern | infinite_scroll
+  next_selector: "a.PLACEHOLDER-next"      # for next_link
+  # pattern: "https://example.com/PLACEHOLDER/listing?page={page}"   # for url_pattern
+  # start: 1                               # page number of the start URL (url_pattern)
+  # step: 1
+  # scroll_pause: 1.5                      # seconds between scrolls (infinite_scroll)
+  # max_scrolls: 20
+
+max_pages: 5
+
+# Optional: follow each item's link and extract extra fields from its page.
+# Detail selectors are relative to the whole detail document.
+detail:
+  link_field: url
+  max_items: null                          # cap the number of detail pages (null = no cap)
+  fields:
+    description:
+      selector: "div.PLACEHOLDER-description"
+      attr: text
+    sku:
+      selector: "xpath://th[text()='PLACEHOLDER']/following-sibling::td"
+      attr: text
+
+request:
+  delay: 1.5                               # base seconds between requests
+  jitter: 1.0                              # + random 0..jitter seconds
+  timeout: 20
+  retries: 3                               # on 429 / 5xx / timeouts, exponential backoff
+  backoff_base: 1.0
+  headers: {}                              # extra headers, e.g. {Accept-Language: "en-GB"}
+  # user_agents: ["..."]                   # override the built-in rotating UA pool

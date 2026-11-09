@@ -1,0 +1,64 @@
+# Config for scraping NPTEL course outline and lectures:
+# https://nptel.ac.in/courses/106101208
+
+name: nptel_course_106101208
+
+start_urls:
+  - "https://nptel.ac.in/courses/106101208"
+
+# The page is a SvelteKit SPA where the course outline is rendered by JS.
+render_js: true
+wait_for: "li.lesson"
+
+item:
+  container: "li.lesson"
+  fields:
+    title:
+      selector: "span"
+      attr: text
+      required: true
+    week:
+      selector: "xpath:ancestor::div[contains(@class, 'unit')]"
+      attr: text
+      clean:
+        - {regex: '(Week\s*\d+|Live\s*Session[^\n]*)'}
+    lecture_number:
+      selector: "span"
+      clean:
+        - {regex: 'Lecture\s*(\d+)'}
+        - {type: int}
+      default: null
+    part:
+      selector: "span"
+      clean:
+        - {regex: 'Part\s*(\d+)'}
+        - {type: int}
+      default: null
+    topic:
+      selector: "span"
+      clean:
+        - {regex: ':\s*(.+)$'}
+        - strip
+      default: null
+    course:
+      selector: "xpath://h3[contains(@class, 'font-bold')]"
+      attr: text
+    instructor:
+      selector: "xpath://div[contains(@class, 'department')]//span"
+      attr: text
+    syllabus_pdf:
+      selector: "xpath://a[contains(@href, 'syllabus_pdf')]/@href"
+      attr: href
+
+dedupe_on: [title]
+
+pagination:
+  type: none
+
+max_pages: 1
+
+request:
+  delay: 1.0
+  jitter: 0.5
+  timeout: 30
+  retries: 3

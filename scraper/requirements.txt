@@ -1,0 +1,8 @@
+requests>=2.31,<3
+beautifulsoup4>=4.12,<5
+lxml>=5.2
+cssselect>=1.2
+PyYAML>=6.0
+pydantic>=2.7,<3
+playwright>=1.45
+rapidfuzz>=3.0
